@@ -1,0 +1,33 @@
+name: Publish Foundation Packages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Build and publish Maven artifacts
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+          server-id: github
+          server-username-env-var: GITHUB_ACTOR
+          server-password-env-var: GITHUB_TOKEN
+
+      - name: Build, test and publish
+        run: mvn --batch-mode --no-transfer-progress clean deploy -DdeployAtEnd=true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
